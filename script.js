@@ -15,7 +15,7 @@ var count = 0;
 
 function isOperator(x){
 	
-  if(x=="-"||x=="+"||x=="X"||x=="/" || x=="^" || x=="(" || x==')' || x=='sin' || x=='cos' || x=='tan'|| x=='Sqrt'){
+  if(x=="-"||x=="+"||x=="*"||x=="/" || x=="^" || x=="(" || x==')' || x=='sin' || x=='cos' || x=='tan'|| x=='Sqrt'){
     return 1;
   }
   else return 0;
@@ -58,7 +58,7 @@ function returnPrecedence(x){
     case "-":
       return 1;
       break;
-    case "X":
+    case "*":
       return 2;
       break;
     case "/":
@@ -83,7 +83,7 @@ function evaluate(op1,op2,operator){
     case "/":
       return parseFloat(op1)/parseFloat(op2);
       break;
-    case "X":
+    case "*":
       return  parseFloat(op1)*parseFloat(op2);
 	  break;
 	  ;
