@@ -1,4 +1,3 @@
-
 var hasPointer=false;
 var num = "";
 var stack = [];
@@ -9,9 +8,16 @@ var tempStack=[];
 var postfixString="";
 var postfixStack=[];
 var exp = "";
-
 var output = [];
 var count = 0;
+
+let history = [];
+
+const constants = {
+    pi: 3.1415,
+    e: 2.7182
+  };
+  let variables = {};
 
 function isOperator(x){
 	
@@ -122,34 +128,19 @@ function displayOutput(){
 			$("#output-text").val(exp.slice(exp.length-15,exp.length));
 		}
 }
-/*$(".flex-wrapper").ready(function() {
-	$('#output-text').on('keyup', function() {
-	  var inputValue = $(this).val();
-	  console.log(inputValue);
-	});
-  });*/
- /* $(document).ready(function() {
-	$('.flex-wrapper').on('click keyup', function(e) {
-	  var idClicked = e.target.id;
-	  var value = $('#' + idClicked).attr('value');
-	  var inputValue = $('#calc-input').val();
-	  
-	  if (e.type === 'click') {
-		console.log('Clicked ID:', idClicked);
-		console.log('Clicked Value:', value);
-		
-		// Update the editable text input with the clicked value
-		$('#calc-input').val(inputValue + value);
-	  } else if (e.type === 'keyup') {
-		console.log('Input Value:', inputValue);
-	  }
-	});
-  });*/
-  
-
 		$('#output-text').on('keyup', function(e) {
 		  var value = $(this).val();
-		  exp = value;
+		  const evaluatedExpression = value.replace(/[a-z]+/g, (match) => {
+			if (match in constants) {
+			  return constants[match];
+			} else if (match in variables) {
+			  return variables[match];
+			} else {
+			  return match;
+			}
+		  });
+	
+		  exp = evaluatedExpression;
 		});
 	
 	
@@ -160,21 +151,14 @@ $(".flex-wrapper").on("click",function(e) {
 		var idClicked = e.target.id;
 		var value = $("#" + idClicked).attr("value");
 	
-	if(value=="=" || value=="AC"|| value=="CE"){
+	if(value=="=" || value=="AC"|| value=="CE" ){
 			calc(value);
 	}
 	else{
 		exp+=value;
 		displayOutput();
 	}
-		// calc(value);
-  //$('#output-text').val(idClicked + value);
-  
-  
-  /*To handle the unexpected clicks in between the buttons*/
-  //if (value != undefined) {
 
-  //}
 	
 });
 
@@ -183,11 +167,11 @@ function calc(value){
 	console.log(stack);
 	prevValue=stack[stack.length-1];
 	/*Switching through different cases*/
-	switch(value){
-		case "=":
+	switch(value ){
+		case "=": case e.key === "Enter":
 			console.log(exp);
 			var tempNum="";
-			//var tempNum1=""
+			
 			var result="";
 			/*Handling invalid cases such as 
 			1. If the end of the input is an operator or a decimal point
@@ -224,18 +208,6 @@ function calc(value){
 					if(!isOperator(possible_op)) { // && !isBracket(stack[i]))   // to handle multiple values // remove ||i==0
 						tempNum=tempNum+possible_op;
 					}
-				/*	else if(isBracket(stack[i])){
-						//tempNum1=tempNum1+stack[i];
-						if(stack[i]===")" && !isOperator(stack[i+1])){
-					 tempNum1=tempNum1+stack[i];
-						}
-						else if(stack[i]===")"){
-							infixStack.push(stack[i]);
-						}
-						else{
-							infixStack.push(stack[i]);
-						}
-					}*/
 					else {
 					//	infixStack.push(tempNum1);
 					infixStack_New.push(parseFloat(tempNum));
@@ -313,12 +285,14 @@ function calc(value){
 				result=(Math.round(result * 10000) / 10000); // 4 decimal places 
 				//console.log(result);
 				//output[count] = infixStack + " " +result;
-				const newdiv = document.createElement('div')
+			//	const newdiv = document.createElement('div')
 			//	newdiv.classList.add('history')
-				newdiv.append(infixStack + "=" +result)
+				/*newdiv.append(infixStack + "=" +result)
 				side.append(newdiv)
 				count++;
-				postfixStack=[];
+				postfixStack=[];*/
+				history.push(result);
+				updateHistory();
 			}
 			/*Handling the divide by zero, i,e the infinite case*/
 			$("#output-text1").val(result);
@@ -368,4 +342,33 @@ function calc(value){
 			break;     
 	}
 }
-	
+	function addVariable() {
+    const variableNameInput = document.getElementById("variable-name");
+    const variableValueInput = document.getElementById("variable-value");
+    const variableName = variableNameInput.value;
+    const variableValue = parseFloat(variableValueInput.value);
+  
+    if (variableName in constants) {
+      alert(`"${variableName}" is a constant and cannot be used as a variable name.`);
+      return;
+    }
+  
+    variables[variableName] = variableValue;
+    console.log(variables);
+  
+    alert(`Variable "${variableName}" added with value ${variableValue}.`);
+  }
+  function updateHistory() {
+	const historyList = document.getElementById("history-list");
+	historyList.innerHTML = "";
+	for (let i = 0; i < history.length; i++) {
+	  const item = document.createElement("li");
+	  item.textContent = history[i];
+	  item.addEventListener("click", function() {
+		history.splice(i, 1);
+		updateHistory();
+	  });
+	  historyList.appendChild(item);
+	}
+  }
+  

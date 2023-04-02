@@ -9,10 +9,26 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 </head>
 <body>
-  <div class="sidebar" id="side">
-    <button class="close" id="btn_close">⨉</button>
-    <h1>History</h1>
-</div>
+  <div>
+    <h2>History:</h2>
+    <ul id="history-list"></ul>
+  </div>
+  
+  <div>
+    <label>History:</label>
+    <div id="history-container"></div>
+  </div>
+  <div class="header">
+    
+    <div class="variables">
+      <h3>Variables</h3>
+      <input type="text" id="variable-name" placeholder="Variable name">
+      <input type="text" id="variable-value" placeholder="Variable value">
+      <button onclick="addVariable()">Add Variable</button>
+    </div>
+  </div>
+  
+ 
     <div class="flex-container">
       <div>
      

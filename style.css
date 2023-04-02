@@ -4,6 +4,7 @@
   }
   button:focus{ 
     outline:0 !important; 
+    padding-top: 10px;
   }
   
   #logo{
@@ -101,4 +102,22 @@
     margin:0px;
   }
   
+  .header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+  }
+  
+  .variables {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  h3 {
+    margin-bottom: 10px;
+  }
   
