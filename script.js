@@ -1,360 +1,303 @@
-var hasPointer = false;
-var num = "";
-var stack = [];
-var infixStack_New = [];
-var prevValue = "";
-var display = "";
-var tempStack = [];
-var postfixString = "";
-var postfixStack = [];
-var exp = "";
-var output = [];
-var count = 0;
-
+let infixStack_ = [];
+let tempStack = [];
+let postfixStack = [];
 let history = [];
-
+let inputExpression = "";
+let tempExpression = "";
 const constants = {
-	pi: 3.1415,
-	e: 2.7182
+  pi: 3.1415,
+  e: 2.7182,
 };
-let variables = {};
+let numericalOperands= {};
 
-function isOperator(x) {
+const isOperator = (x) => ("-+*/^()sincostanSqrt".includes(x) ? 1 : 0);
 
-	if (x == "-" || x == "+" || x == "*" || x == "/" || x == "^" || x == "(" || x == ')' || x == 'sin' || x == 'cos' || x == 'tan' || x == 'Sqrt') {
-		return 1;
-	}
-	else return 0;
+const isSingleOperandOperator = (operator) =>
+  ["sin", "cos", "tan", "Sqrt"].indexOf(operator) !== -1;
+
+const returnPrecedence = (x) => {
+  switch (x) {
+    case "+":
+      return 1;
+    case "-":
+      return 1;
+    case "*":
+      return 2;
+    case "/":
+      return 2;
+    case "^":
+      return 3;
+    case "sin":
+    case "cos":
+    case "tan":
+    case "Sqrt":
+      return 4;
+  }
+};
+
+const evaluate = (operand1, operand2, operator) => {
+  console.log("operand1,operand2,operator" + operand1, operand2, operator);
+  switch (operator) {
+    case "+":
+      return parseFloat(operand1) + parseFloat(operand2);
+    case "-":
+      return parseFloat(operand1) - parseFloat(operand2);
+    case "/":
+      return parseFloat(operand1) / parseFloat(operand2);
+    case "*":
+      return parseFloat(operand1) * parseFloat(operand2);
+    case "^":
+      let result = 1;
+      for (let i = 0; i < parseFloat(operand2); i++) {
+        result *= parseFloat(operand1);
+      }
+      return result;
+    case "sin":
+      return Math.sin(operand2);
+    case "cos":
+      return Math.cos(operand2);
+    case "tan":
+      return Math.tan(operand2);
+    case "Sqrt":
+      return Math.sqrt(operand2);
+  }
+};
+const displayOutput = () => {
+  $("#output-text").val("");
+  if (inputExpression.length <= 30) {
+    $("#output-text").val(inputExpression);
+  } else {
+    $("#output-text").val(
+      inputExpression.slice(inputExpression.length - 15, inputExpression.length)
+    );
+  }
+};
+
+  const clearAll = (x) => {
+  inputExpression = "";
+  postfixStack = [];
+  displayOutput();
 }
-function isBracket(x) {
-	if (x == "(" || x == ")") {
-		return 1;
-	}
-	else return 0;
-}
-
-function isEquals(x) {
-	if (x == "=") {
-		return 1;
-	}
-	else return 0;
-}
-
-function isNumber(x) {
-	if (x == "1" || x == "2" || x == "3" || x == "4" || x == "5" || x == "6" || x == "7" || x == "8" || x == "9" || x == "0") {
-		return 1;
-	}
-	else return 0;
-}
-
-function IsMultiplyOrDivide(x) {
-	if (x == "/" || x == "X") {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-function isSingleOperandOperator(operator) {
-	return ['sin', 'cos', 'tan', 'Sqrt'].indexOf(operator) !== -1;
-}
-function returnPrecedence(x) {
-	switch (x) {
-		case "+":
-			return 1;
-			break;
-		case "-":
-			return 1;
-			break;
-		case "*":
-			return 2;
-			break;
-		case "/":
-			return 2;
-			break;
-		case "^":
-			return 3;
-			break;
-
-		case "sin":
-		case "cos":
-		case "tan":
-		case "Sqrt":
-			return 4;
-			break;
-
-
-	}
-}
-/*Evaluates two operators and returns the result*/
-function evaluate(op1, op2, operator) {
-	console.log("Op1,Op2,operator" + op1, op2, operator);
-	switch (operator) {
-		case "+":
-			return parseFloat(op1) + parseFloat(op2);
-			break;
-		case "-":
-			return parseFloat(op1) - parseFloat(op2);
-			break;
-		case "/":
-			return parseFloat(op1) / parseFloat(op2);
-			break;
-		case "*":
-			return parseFloat(op1) * parseFloat(op2);
-			break;
-			;
-		case "^":
-		
-			let result = 1;
-			for (let i = 0; i < parseFloat(op2); i++) {
-				result *= parseFloat(op1);
-
-			}
-			return result;
-			break;
-		case "sin":
-			return Math.sin(op2);
-			break;
-		case "cos":
-			return Math.cos(op2);
-			break;
-		case "tan":
-			return Math.tan(op2);
-			break;
-		case "Sqrt":
-			return Math.sqrt(op2);
-			break;
-	}
-
+  const clearLastChar= (x) => {
+  inputExpression = inputExpression.substring(0, inputExpression.length - 1);
+  displayOutput();
 }
 
-function displayOutput() {
-	$("#output-text").val("");
-	if (exp.length <= 15) {
-		$("#output-text").val(exp);
-	}
-	else {
-		$("#output-text").val(exp.slice(exp.length - 15, exp.length));
-	}
-}
-$('#output-text').on('keyup', function (e) {
+$("#output-text").on("keyup", function (e) {
+  var value = $(this).val();
 
-	var value = $(this).val();
+  const evaluatedInputExpression = value.replace(/[a-z]+/g, (match) => {
+    if (match in constants) {
+      return constants[match];
+    } else if (match in numericalOperands) {
+      return numericalOperands[match];
+    } else {
+      return match;
+    }
+  });
 
-	const evaluatedExpression = value.replace(/[a-z]+/g, (match) => {
-		if (match in constants) {
-			return constants[match];
-		} else if (match in variables) {
-			return variables[match];
-		} else {
-			return match;
-		}
-	});
-
-	exp = evaluatedExpression;
+  inputExpression = evaluatedInputExpression;
 });
 
 $(".flex-wrapper").on("click", function (e) {
-	console.log(e.type);
+  console.log(e.type);
 
-	var idClicked = e.target.id;
-	var value = $("#" + idClicked).attr("value");
+  var idClicked = e.target.id;
+  var value = $("#" + idClicked).attr("value");
 
-	if (value == "=" || value == "AC" || value == "CE") {
-		calc(value);
-	}
-	else {
-		exp += value;
-		displayOutput();
-	}
-
-
+  if (value == "=" || value == "AC" || value == "CE") {
+    calculate(value);
+  } else {
+    inputExpression += value;
+    displayOutput();
+  }
 });
-function calc(value) {
-	console.log(value);
-	console.log(stack);
-	prevValue = stack[stack.length - 1];
-	/*Switching through different cases*/
-	switch (value) {
-		case "=":
-			console.log(exp);
-			var tempNum = "";
-            var result = "";
 
-			if (exp[exp.length - 1] == "." || exp.length == 0 || IsMultiplyOrDivide(exp[0])) {
-				result = 0;
-			}
-			else {
-				for (var i = 0; i < exp.length; i++) {
-					var possible_op = exp[i];
-					console.log(exp[i]);
-			
-					if ('s' == possible_op) {
-						possible_op = "sin";
-						console.log(possible_op);
-						i += 2;
-					}
-					else if ('c' == possible_op) {
-						possible_op = "cos";
-						i += 2;
-					}
-					else if ('t' == possible_op) {
-						possible_op = "tan";
-						i += 2;
-					}
-					else if ('S' == possible_op) {
-						possible_op = "Sqrt";
-						i += 3;
-					}
+const calculate = (value) => {
+  switch (value) {
+    case "=":
+      evaluateExpression();
+      break;
+    case "AC":
+      clearAll();
+      break;
+    case "CE":
+      clearLastChar();
+      break;
+  }
+};
 
+const evaluateExpression = () => {
+  var result = "";
 
-					if (!isOperator(possible_op)) { 
-						tempNum = tempNum + possible_op;
-					}
-					else {
-						infixStack_New.push(parseFloat(tempNum));
-						console.log(possible_op);
-						infixStack_New.push(possible_op);
-						tempNum = "";
-					}
-				}
+  if (
+    inputExpression[inputExpression.length - 1] == "." ||
+    inputExpression.length == 0
+  ) {
+    result = 0;
+  } else {
+    var infixStack = parseInfix();
+    var postfixStack = convertToPostfix(infixStack);
+    result = evaluatePostfix(postfixStack);
 
+    result = Math.round(result * 10000) / 10000;
 
-				infixStack_New.push(parseFloat(tempNum)); // last operand value
+    if (isNaN(result)) {
+      alert(`Syntax Error!!!.`);
+      return;
+    }
+    history.push(result);
+    updateHistory();
+  }
 
-				let infixStack = infixStack_New.filter(value => !Number.isNaN(value));
-				console.log("Infix Stack", infixStack);
+  $("#output-text1").val(result);
+  if (isFinite(result)) {
+    infixStack_ = [];
+    stack = [];
+    stack.push(result);
+  } else {
+    infixStack_ = [];
+    stack = [];
+  }
+};
 
+const parseInfix = () => {
+  var infixStack_ = [];
+  for (var i = 0; i < inputExpression.length; i++) {
+    var possible_op = inputExpression[i];
+    console.log(inputExpression[i]);
 
+    if ("s" == possible_op) {
+      possible_op = "sin";
+      console.log(possible_op);
+      i += 2;
+    } else if ("c" == possible_op) {
+      possible_op = "cos";
+      i += 2;
+    } else if ("t" == possible_op) {
+      possible_op = "tan";
+      i += 2;
+    } else if ("S" == possible_op) {
+      possible_op = "Sqrt";
+      i += 3;
+    }
 
-				for (var i = 0; i < infixStack.length; i++) {
-					if (!isOperator(infixStack[i]) && infixStack[i] !== '(' && infixStack[i] !== ')') {
-						postfixStack.push(infixStack[i]);
-					} else if (infixStack[i] === '(') {
-						tempStack.push(infixStack[i]);
-					} else if (infixStack[i] === ')') {
-						while (tempStack[tempStack.length - 1] !== '(') {
-							postfixStack.push(tempStack.pop());
-						}
-						tempStack.pop();
-					} else {
-						if (tempStack.length == 0 || returnPrecedence(infixStack[i]) > returnPrecedence(tempStack[tempStack.length - 1])) {
-							tempStack.push(infixStack[i]);
-						} else if (infixStack[i] === 'sin' || infixStack[i] === 'cos' || infixStack[i] === 'tan') {
-							postfixStack.push(infixStack[i]);
-						} else {
-							while (tempStack.length > 0 && returnPrecedence(infixStack[i]) <= returnPrecedence(tempStack[tempStack.length - 1])) {
-								postfixStack.push(tempStack.pop());
-							}
-							tempStack.push(infixStack[i]);
-						}
-					}
-				}
+    if (!isOperator(possible_op)) {
+      tempExpression = tempExpression + possible_op;
+    } else {
+      infixStack_.push(parseFloat(tempExpression));
+      console.log(possible_op);
+      infixStack_.push(possible_op);
+      tempExpression = "";
+    }
+  }
+  infixStack_.push(parseFloat(tempExpression));
+  return infixStack_.filter((value) => !Number.isNaN(value));
+};
 
-				while (tempStack.length > 0) {
-					postfixStack.push(tempStack.pop());
-				}
+const convertToPostfix = (infixStack) => {
+  var postfixStack = [];
+  var tempStack = [];
 
+  for (var i = 0; i < infixStack.length; i++) {
+    if (
+      !isOperator(infixStack[i]) &&
+      infixStack[i] !== "(" &&
+      infixStack[i] !== ")"
+    ) {
+      postfixStack.push(infixStack[i]);
+    } else if (infixStack[i] === "(") {
+      tempStack.push(infixStack[i]);
+    } else if (infixStack[i] === ")") {
+      while (tempStack[tempStack.length - 1] !== "(") {
+        postfixStack.push(tempStack.pop());
+      }
+      tempStack.pop();
+    } else {
+      if (
+        tempStack.length == 0 ||
+        returnPrecedence(infixStack[i]) >
+          returnPrecedence(tempStack[tempStack.length - 1])
+      ) {
+        tempStack.push(infixStack[i]);
+      } else if (
+        infixStack[i] === "sin" ||
+        infixStack[i] === "cos" ||
+        infixStack[i] === "tan"
+      ) {
+        postfixStack.push(infixStack[i]);
+      } else {
+        while (
+          tempStack.length > 0 &&
+          returnPrecedence(infixStack[i]) <=
+            returnPrecedence(tempStack[tempStack.length - 1])
+        ) {
+          postfixStack.push(tempStack.pop());
+        }
+        tempStack.push(infixStack[i]);
+        tempStack.push(infixStack[i]);
+      }
+    }
+  }
 
+  while (tempStack.length > 0) {
+    postfixStack.push(tempStack.pop());
+  }
+  return postfixStack;
+};
+const evaluatePostfix = (postfixStack) => {
+  var evaluatingStack = [];
 
+  for (var i = 0; i < postfixStack.length; i++) {
+    if (!isOperator(postfixStack[i])) {
+      evaluatingStack.push(parseFloat(postfixStack[i]));
+    } else {
+      var operator = postfixStack[i];
+      var operand2 = evaluatingStack.pop();
+      var operand1 = isSingleOperandOperator(operator)
+        ? null
+        : evaluatingStack.pop();
+      var res = evaluate(operand1, operand2, operator);
+      evaluatingStack.push(res);
+    }
+  }
 
-				console.log("Postfix Stack", postfixStack);
-				var evaluatingStack = [];
+  return evaluatingStack.pop();
+};
 
-				for (var i = 0; i < postfixStack.length; i++) {
-					if (!isOperator(postfixStack[i])) {
-						evaluatingStack.push(parseFloat(postfixStack[i]));
-					} else {
-						var operator = postfixStack[i];
-						var operand2 = evaluatingStack.pop();
-						var operand1 = isSingleOperandOperator(operator) ? null : evaluatingStack.pop();
-						var res = evaluate(operand1, operand2, operator);
-						evaluatingStack.push(res);
-					}
-				}
+const addvariable= () => {
+  const variableNameInput = document.getElementById("variable-name");
+  const variableValueInput = document.getElementById("variable-value");
+  const variableName = variableNameInput.value;
+  const variableValue = parseFloat(variableValueInput.value);
 
-				result = evaluatingStack.pop();
-				result = (Math.round(result * 10000) / 10000); // 4 decimal places
+  if (variableName in constants) {
+    alert(
+      `"${variableName}" is a constant and cannot be used as a variablename.`
+    );
+    return;
+  }
+  if (variableName in numericalOperands) {
+    alert(`variable"${variableName}" already exists.`);
+    return;
+  }
 
-				if (isNaN(result)) {
-					alert(`Syntax Error!!!.`);
-					return;
-				}
-				history.push(result);
-				updateHistory();
-			}
-		
-			$("#output-text1").val(result);
-			if (isFinite(result)) {
-				infixStack_New = [];
-				stack = [];
-				stack.push(result);
-			}
-			else {
-				infixStack_New = [];
-				stack = [];
-			}
+  numericalOperands[variableName] = variableValue;
+  console.log(numericalOperands);
 
-			break;
-		case "AC":
+  alert(`variable"${variableName}" added with value ${variableValue}.`);
+};
 
-			exp = "";
-			postfixStack = []
-			displayOutput();
-			break;
-
-		case "CE":
-			exp = exp.substring(0, exp.length - 1);
-			displayOutput();
-			break;
-
-
-		case ".":
-			if (!hasPointer) {
-				stack.push(value);
-				displayOutput(stack);
-				hasPointer = true;
-			}
-			break;
-
-		default:
-
-			stack.push(value);
-			console.log(stack);
-			//displayOutput(stack);
-			break;
-	}
-}
-function addVariable() {
-	const variableNameInput = document.getElementById("variable-name");
-	const variableValueInput = document.getElementById("variable-value");
-	const variableName = variableNameInput.value;
-	const variableValue = parseFloat(variableValueInput.value);
-
-	if (variableName in constants) {
-		alert(`"${variableName}" is a constant and cannot be used as a variable name.`);
-		return;
-	}
-	if (variableName in variables) {
-		alert(`Variable "${variableName}" already exists.`);
-		return;
-	}
-
-	variables[variableName] = variableValue;
-	console.log(variables);
-
-	alert(`Variable "${variableName}" added with value ${variableValue}.`);
-}
-function updateHistory() {
-	const historyList = document.getElementById("history-list");
-	historyList.innerHTML = "";
-	for (let i = 0; i < history.length; i++) {
-		const item = document.createElement("li");
-		item.textContent = history[i];
-		item.addEventListener("click", function () {
-			history.splice(i, 1);
-			updateHistory();
-		});
-		historyList.appendChild(item);
-	}
-}
+const updateHistory = () => {
+  const historyList = document.getElementById("history-list");
+  historyList.innerHTML = "";
+  for (let i = 0; i < history.length; i++) {
+    const item = document.createElement("li");
+    item.textContent = history[i];
+    item.addEventListener("click", () => {
+      history.splice(i, 1);
+      updateHistory();
+    });
+    historyList.appendChild(item);
+  }
+};
